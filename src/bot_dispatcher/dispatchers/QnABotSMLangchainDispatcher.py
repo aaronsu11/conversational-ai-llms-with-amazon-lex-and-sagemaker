@@ -1,7 +1,7 @@
 import boto3
 import json
 import os
-from sm_utils.sm_langchain_sample import SagemakerLangchainBot
+from sm_utils.bedrock_langchain_sample import BedrockBot
 from dispatchers import utils
 import logging
 
@@ -54,10 +54,9 @@ class QnABotSMLangchainDispatcher():
             f"Conversation Conext: {conv_context} \n Type {type(conv_context)}")
 
         # LLM
-        langchain_bot = SagemakerLangchainBot(
+        langchain_bot = BedrockBot(
             prompt_template = prompt_template,
-            sm_endpoint_name = os.environ.get("ENDPOINT_NAME","cai-lex-hf-flan-bot-endpoint"),
-            region_name = os.environ.get('AWS_REGION',"us-east-1"),
+            region_name = os.environ.get('AWS_REGION',"us-west-2"),
             lex_conv_history = json.dumps(conv_context['history'])
         )
         
