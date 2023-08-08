@@ -8,7 +8,7 @@ import logging
 logger = utils.get_logger(__name__)
 logger.setLevel(logging.DEBUG)
 CHAT_HISTORY="chat_history"
-initial_history = {CHAT_HISTORY: f"AI: Hi there! How Can I help you?\nHuman: ",}
+initial_history = {CHAT_HISTORY: f"AI: Hi there! How Can I help you?",}
 
 
 class QnABotSMLangchainDispatcher():
@@ -21,17 +21,34 @@ class QnABotSMLangchainDispatcher():
         self.session_attributes = self.intent_request['req']['session']
 
     def dispatch_intent(self):
-        prompt_template = """The following is a friendly conversation between a human and an AI. The AI is 
-        talkative and provides lots of specific details from its context. If the AI does not know 
-        the answer to a question, it truthfully says it does not know. You are provided with information
-        about entities the Human mentions, if relevant.
+        prompt_template = """You are a robot named "mini pupper" that can only do 2 types of actions: speak and act.
+- "speak" action can have any content in a conversational style
+- "act" action can only be a range of facial expressions: happy, angry, sad, none.
 
-        Chat History:
-        {chat_history}
+You are having a conversation with a human and you are talkative, friendly and humorous. If you do not know the answer to a question, you truthfully says you don't know.
 
-        Conversation:
-        Human: {input}
-        AI:"""
+As a robot, you must always respond with a JSON object containing the actions and nothing else. 
+
+The JSON object must comply with the following format:
+---
+{{"speak": <str>, "act": <str>}}
+---
+
+For example:
+
+Human: Hi, what's your name?
+Robot: {{"speak": "My name is mini pupper!", "act": "happy"}}
+
+Human: I hate you!
+Robot: {{"speak": "Oh no! I'm just a mini pupper trying to spread happiness.", "act": "sad"}}
+
+Conversation History:
+{chat_history}
+
+Now respond to the Human message below in a JSON object with the appropriate actions.
+
+Human: {input}
+Robot: """
 
         if 'ConversationContext' in self.session_attributes:
             # Set context with convo history for custom memory in langchain
