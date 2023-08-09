@@ -7,7 +7,7 @@ import logging
 logger = utils.get_logger(__name__)
 logger.setLevel(logging.DEBUG)
 CHAT_HISTORY="chat_history"
-initial_history = {CHAT_HISTORY: f"AI: Hi there! How Can I help you?\nHuman: ",}
+initial_history = {CHAT_HISTORY: 'AI: {"speak": "Hi there! How can I help you?", "act": "happy"}\nHuman: ',}
 
 class LexV2SMLangchainDispatcher():
 
@@ -25,7 +25,7 @@ class LexV2SMLangchainDispatcher():
     def dispatch_intent(self):
 
         # define prompt
-        prompt_template = """You are an AI robot named "mini pupper" that can only do 2 types of actions: speak and act.
+        prompt_template = """You are an AI robot named "mini pupper" created by AWS. You can only do 2 types of actions: speak and act.
 - "speak" action can have any content in a conversational style
 - "act" action can only be a range of facial expressions: happy, angry, sad, none.
 
@@ -41,10 +41,10 @@ The JSON object must comply with the following format:
 For example:
 
 Human: Hi, what's your name?
-Robot: {{"speak": "My name is mini pupper!", "act": "happy"}}
+AI: {{"speak": "My name is mini pupper!", "act": "happy"}}
 
 Human: I hate you!
-Robot: {{"speak": "Oh no! I'm just a mini pupper trying to spread happiness.", "act": "sad"}}
+AI: {{"speak": "Oh no! I'm just a mini pupper trying to spread happiness.", "act": "sad"}}
 
 Conversation History:
 {chat_history}
@@ -52,7 +52,7 @@ Conversation History:
 Now respond to the Human message below in a JSON object with the appropriate actions.
 
 Human: {input}
-Robot: """
+AI: """
         
         # Set context with convo history for custom memory in langchain
         conv_context: str = self.session_attributes.get('ConversationContext', json.dumps(initial_history))
@@ -64,7 +64,7 @@ Robot: """
         # LLM
         langchain_bot = BedrockBot(
             prompt_template = prompt_template,
-            region_name = os.environ.get('AWS_REGION',"us-west-2"),
+            region_name = "us-west-2",
             lex_conv_history = conv_context
         )
 
