@@ -1,5 +1,5 @@
 from dispatchers import utils
-from sm_utils.sm_langchain_sample import SagemakerLangchainBot
+from sm_utils.bedrock_langchain_sample import BedrockBot
 import json
 import os
 import logging
@@ -24,36 +24,50 @@ class LexV2SMLangchainDispatcher():
 
     def dispatch_intent(self):
 
-        
         # define prompt
-        prompt_template = """The following is a friendly conversation between a human and an AI. The AI is 
-        talkative and provides lots of specific details from its context. If the AI does not know 
-        the answer to a question, it truthfully says it does not know. You are provided with information
-        about entities the Human mentions, if relevant.
+        prompt_template = """You are an AI robot named "mini pupper" that can only do 2 types of actions: speak and act.
+- "speak" action can have any content in a conversational style
+- "act" action can only be a range of facial expressions: happy, angry, sad, none.
 
-        Chat History:
-        {chat_history}
+You are having a conversation with a human and you are talkative, friendly and humorous. If you do not know the answer to a question, you truthfully says you don't know.
 
-        Conversation:
-        Human: {input}
-        AI:"""
+As a robot, you must always respond with a JSON object containing the actions and nothing else. 
+
+The JSON object must comply with the following format:
+---
+{{"speak": <str>, "act": <str>}}
+---
+
+For example:
+
+Human: Hi, what's your name?
+Robot: {{"speak": "My name is mini pupper!", "act": "happy"}}
+
+Human: I hate you!
+Robot: {{"speak": "Oh no! I'm just a mini pupper trying to spread happiness.", "act": "sad"}}
+
+Conversation History:
+{chat_history}
+
+Now respond to the Human message below in a JSON object with the appropriate actions.
+
+Human: {input}
+Robot: """
         
         # Set context with convo history for custom memory in langchain
-        conv_context: str = self.session_attributes.get('ConversationContext',json.dumps(initial_history))
+        conv_context: str = self.session_attributes.get('ConversationContext', json.dumps(initial_history))
+        print("context retrieved:" + conv_context)
         conv_context_json = json.loads(conv_context)
-        "\n".join(sample_str.split("\n")[-3:])  
 
-        logger.debug("Conv Conext:")
-        logger.debug(conv_context)
-        logger.debug(type(conv_context))
+        logger.debug(conv_context_json)
 
         # LLM
-        langchain_bot = SagemakerLangchainBot(
+        langchain_bot = BedrockBot(
             prompt_template = prompt_template,
-            sm_endpoint_name = os.environ.get("ENDPOINT_NAME","cai-lex-hf-flan-bot-endpoint"),
-            region_name = os.environ.get('AWS_REGION',"us-east-1"),
+            region_name = os.environ.get('AWS_REGION',"us-west-2"),
             lex_conv_history = conv_context
         )
+
         llm_response = langchain_bot.call_llm(user_input=self.input_transcript)
         print("llm_response:: " + llm_response)
 
