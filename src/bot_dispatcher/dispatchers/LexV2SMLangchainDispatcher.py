@@ -1,7 +1,6 @@
 from dispatchers import utils
 from sm_utils.bedrock_langchain_sample import BedrockBot
 import json
-import os
 import logging
 
 logger = utils.get_logger(__name__)
@@ -71,10 +70,17 @@ AI: """
         llm_response = langchain_bot.call_llm(user_input=self.input_transcript)
         print("llm_response:: " + llm_response)
 
-        
+        try:
+            iot_message = json.loads(llm_response)
+            iot_message["move"] = "none"
+        except:
+            iot_message = {"speak": "I'm sorry, I can't brain right now"}
+        else:
+            utils.push_to_iot(iot_message, self.intent_request['sessionId'])
+
         self.message = {
             'contentType': 'PlainText',
-            'content': llm_response
+            'content': iot_message["speak"]
         }
 
         # save chat history as Lex session attributes

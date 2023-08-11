@@ -1,6 +1,11 @@
 import logging
 import os
+import boto3
+import re
+import json
 
+# Initialize IoT client
+iot_client = boto3.client("iot-data", region_name="us-east-1")
 
 def get_logger(module_name):
 
@@ -60,3 +65,17 @@ def close(intent_request, session_attributes, fulfillment_state, message):
         'sessionId': intent_request['sessionId'],
         'requestAttributes': intent_request['requestAttributes'] if 'requestAttributes' in intent_request else None
     }
+
+def push_to_iot(message: dict, session_id: str):
+    """Push a message to AWS IoT Core"""
+
+    match = re.match(r'^([^-]+)-', session_id)
+    if match:
+        pupper_name = match.group(1)
+    else:
+        pupper_name = "default"
+
+    # Assuming you have a topic named 'pupperTopic'
+    topic = f"pupper/{pupper_name}"
+
+    iot_client.publish(topic=topic, qos=1, payload=json.dumps(message))

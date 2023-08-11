@@ -4,14 +4,9 @@ from dispatchers.LexV2SMLangchainDispatcher import LexV2SMLangchainDispatcher
 from dispatchers.QnABotSMLangchainDispatcher import QnABotSMLangchainDispatcher
 from dispatchers import utils
 import logging
-import boto3
-import json
 
 logger = utils.get_logger(__name__)
 logger.setLevel(logging.DEBUG)
-
-# Initialize IoT client
-iot_client = boto3.client("iot-data", region_name='us-east-1')
 
 
 def dispatch_lexv2(request):
@@ -43,15 +38,6 @@ def dispatch_qnabot(request):
     return qna_intent_dispatcher.dispatch_intent()
 
 
-def push_to_iot(message):
-    """Push a message to AWS IoT Core"""
-
-    # Assuming you have a topic named 'pupperTopic'
-    topic = "pupper"
-
-    iot_client.publish(topic=topic, qos=1, payload=json.dumps(message))
-
-
 def lambda_handler(event, context):
     print(event)
     if "sessionState" in event:
@@ -60,25 +46,25 @@ def lambda_handler(event, context):
                 if event["sessionState"]["intent"]["name"] == "FallbackIntent":
                     return dispatch_lexv2(event)
                 elif event["sessionState"]["intent"]["name"] == "PupperDance":
-                    push_to_iot({"move": "dance"})
+                    utils.push_to_iot({"speak": "", "act": "happy", "move": "dance"}, event["sessionId"])
                     return utils.close(
                         event,
                         utils.get_session_attributes(event),
                         "Fulfilled",
                         {
                             "contentType": "PlainText",
-                            "content": '{"speak": "", "act": "happy", "move": "dance"}',
+                            "content": "Move it!",
                         },
                     )
                 elif event["sessionState"]["intent"]["name"] == "PupperStop":
-                    push_to_iot({"move": "stop"})
+                    utils.push_to_iot({"speak": "", "act": "none", "move": "stop"}, event["sessionId"])
                     return utils.close(
                         event,
                         utils.get_session_attributes(event),
                         "Fulfilled",
                         {
                             "contentType": "PlainText",
-                            "content": '{"speak": "", "act": "none", "move": "stop"}',
+                            "content": "Move it!",
                         },
                     )
 
@@ -88,66 +74,59 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     event = {
-        "sessionId": "177118830501985",
-        "inputTranscript": "Dance",
+        "sessionId": "ngl-b0a4709b-f8c4-4755-b253-38d987256c21",
+        "inputTranscript": "what is your name",
+        "rawInputTranscript": "what is your name",
         "interpretations": [
             {
                 "intent": {
-                    "name": "PupperDance",
-                    "slots": {},
-                    "state": "ReadyForFulfillment",
                     "confirmationState": "None",
-                },
-                "nluConfidence": 1,
-            },
-            {
-                "intent": {
                     "name": "FallbackIntent",
                     "slots": {},
                     "state": "ReadyForFulfillment",
-                    "confirmationState": "None",
                 }
             },
             {
                 "intent": {
+                    "confirmationState": "None",
+                    "name": "PupperDance",
+                    "slots": {},
+                    "state": "ReadyForFulfillment",
+                },
+                "nluConfidence": 0.77,
+            },
+            {
+                "intent": {
+                    "confirmationState": "None",
                     "name": "PupperStop",
                     "slots": {},
                     "state": "ReadyForFulfillment",
-                    "confirmationState": "None",
                 },
-                "nluConfidence": 0.48,
+                "nluConfidence": 0.46,
             },
         ],
         "bot": {
+            "aliasId": "DDZZ2QXCJT",
+            "aliasName": "prod",
             "name": "Sagemaker-Jumpstart-Flan-LLM-Fallback-Bot",
-            "version": "DRAFT",
+            "version": "2",
             "localeId": "en_US",
             "id": "25SKAUSDGZ",
-            "aliasId": "TSTALIASID",
-            "aliasName": "TestBotAlias",
         },
-        "responseContentType": "text/plain; charset=utf-8",
+        "responseContentType": "audio/pcm",
         "sessionState": {
             "sessionAttributes": {},
             "intent": {
-                "name": "PupperDance",
+                "confirmationState": "None",
+                "name": "FallbackIntent",
                 "slots": {},
                 "state": "ReadyForFulfillment",
-                "confirmationState": "None",
             },
-            "originatingRequestId": "322f9283-851d-493a-8fa8-49b89a0b6778",
+            "originatingRequestId": "f9a0ef45-161a-4141-91fe-fbea852ec9bc",
         },
         "messageVersion": "1.0",
         "invocationSource": "FulfillmentCodeHook",
-        "transcriptions": [
-            {
-                "resolvedContext": {"intent": "PupperDance"},
-                "transcription": "Dance",
-                "resolvedSlots": {},
-                "transcriptionConfidence": 1,
-            }
-        ],
-        "inputMode": "Text",
+        "inputMode": "Speech",
     }
 
     lambda_handler(event, None)
