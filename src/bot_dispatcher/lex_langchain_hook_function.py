@@ -46,7 +46,7 @@ def lambda_handler(event, context):
                 if event["sessionState"]["intent"]["name"] == "FallbackIntent":
                     return dispatch_lexv2(event)
                 elif event["sessionState"]["intent"]["name"] == "PupperDance":
-                    utils.push_to_iot({"speak": "", "act": "happy", "move": "dance"}, event["sessionId"])
+                    utils.push_to_iot({"speak": "Move it!", "act": "happy", "move": "dance"}, event["sessionId"])
                     return utils.close(
                         event,
                         utils.get_session_attributes(event),
@@ -57,7 +57,7 @@ def lambda_handler(event, context):
                         },
                     )
                 elif event["sessionState"]["intent"]["name"] == "PupperStop":
-                    utils.push_to_iot({"speak": "", "act": "none", "move": "stop"}, event["sessionId"])
+                    utils.push_to_iot({"speak": "Move it!", "act": "none", "move": "stop"}, event["sessionId"])
                     return utils.close(
                         event,
                         utils.get_session_attributes(event),
@@ -70,63 +70,3 @@ def lambda_handler(event, context):
 
     else:
         return dispatch_qnabot(event)
-
-
-if __name__ == "__main__":
-    event = {
-        "sessionId": "ngl-b0a4709b-f8c4-4755-b253-38d987256c21",
-        "inputTranscript": "what is your name",
-        "rawInputTranscript": "what is your name",
-        "interpretations": [
-            {
-                "intent": {
-                    "confirmationState": "None",
-                    "name": "FallbackIntent",
-                    "slots": {},
-                    "state": "ReadyForFulfillment",
-                }
-            },
-            {
-                "intent": {
-                    "confirmationState": "None",
-                    "name": "PupperDance",
-                    "slots": {},
-                    "state": "ReadyForFulfillment",
-                },
-                "nluConfidence": 0.77,
-            },
-            {
-                "intent": {
-                    "confirmationState": "None",
-                    "name": "PupperStop",
-                    "slots": {},
-                    "state": "ReadyForFulfillment",
-                },
-                "nluConfidence": 0.46,
-            },
-        ],
-        "bot": {
-            "aliasId": "DDZZ2QXCJT",
-            "aliasName": "prod",
-            "name": "Sagemaker-Jumpstart-Flan-LLM-Fallback-Bot",
-            "version": "2",
-            "localeId": "en_US",
-            "id": "25SKAUSDGZ",
-        },
-        "responseContentType": "audio/pcm",
-        "sessionState": {
-            "sessionAttributes": {},
-            "intent": {
-                "confirmationState": "None",
-                "name": "FallbackIntent",
-                "slots": {},
-                "state": "ReadyForFulfillment",
-            },
-            "originatingRequestId": "f9a0ef45-161a-4141-91fe-fbea852ec9bc",
-        },
-        "messageVersion": "1.0",
-        "invocationSource": "FulfillmentCodeHook",
-        "inputMode": "Speech",
-    }
-
-    lambda_handler(event, None)
